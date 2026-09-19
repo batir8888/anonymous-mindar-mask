@@ -5,6 +5,7 @@ const intro = document.querySelector('#intro');
 const panel = document.querySelector('#panel');
 const status = document.querySelector('#status');
 let running = false;
+let runtimeInstalled = false;
 function ready() { start.disabled = false; start.textContent = 'Включить камеру'; }
 mask.addEventListener('model-loaded', ready);
 if (mask.getObject3D?.('mesh')) ready();
@@ -15,7 +16,20 @@ start.onclick = () => {
  }
  start.disabled = true; start.textContent = 'Запуск камеры…';
  mask.components['mask-fit'].reset();
- scene.systems['mindar-face-system'].start();
+ const system = scene.systems['mindar-face-system'];
+ if (!runtimeInstalled) {
+  installTrackingRuntime(system, (state) => {
+   const messages = {loading:'Загрузка распознавания…',searching:'Поиск лица…',fallback:'Пробуем совместимый режим распознавания…','no-face':'Распознавание работает, но лица не видно. Смотрите прямо, приблизьтесь к камере и осветите лицо.'};
+   if (state === 'loading') start.textContent = messages[state];
+   else status.textContent = messages[state];
+  }, (error) => {
+   console.error('Face tracking failed', error);
+   document.querySelector('#hint').textContent = error.name === 'NotAllowedError' ? 'Разрешите доступ к камере в настройках браузера.' : (error.message || 'Не удалось запустить распознавание. Повторите запуск.');
+   shutdown();
+  });
+  runtimeInstalled = true;
+ }
+ system.start();
 };
 scene.addEventListener('arReady', () => {
  running = true; intro.hidden = true; panel.hidden = false; status.textContent = 'Поиск лица…';
@@ -28,11 +42,11 @@ scene.addEventListener('targetFound', () => {status.textContent = mask.component
 scene.addEventListener('targetLost', () => {status.textContent = 'Лицо потеряно — повернитесь к камере';});
 function shutdown() {
  const system = scene.systems['mindar-face-system'];
- if (system.video?.srcObject) system.stop();
+ if (runtimeInstalled) system.stop();
  running = false; panel.hidden = true; intro.hidden = false; ready();
 }
 document.querySelector('#stop').onclick = shutdown;
-window.addEventListener('pagehide', () => { if (running) shutdown(); });
+window.addEventListener('pagehide', () => { if (runtimeInstalled) shutdown(); });
 for (const id of ['size', 'height', 'depth']) {
  document.getElementById(id).oninput = (event) => {
   document.getElementById(id + 'Out').value = event.target.value;

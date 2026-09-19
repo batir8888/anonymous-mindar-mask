@@ -20,7 +20,7 @@
  if (!root.AFRAME) return;
  AFRAME.registerComponent('mask-fit', {
   init() { this.reset(); },
-  reset() { this.samples = []; this.fit = null; this.lastEstimate = null; },
+  reset() { this.samples = []; this.fit = null; this.currentFit = null; this.lastEstimate = null; },
   tick() {
    if (this.fit) return;
    const estimate = this.el.sceneEl.systems['mindar-face-system']?.controller?.lastEstimateResult;
