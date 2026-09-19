@@ -4,9 +4,23 @@
   let releaseDetector = null;
   let generation = 0, watchdog = null, lastFrameAt = 0, startingAt = 0;
   const originalSetup = system._setupAR.bind(system);
+  const originalResize = system._resize.bind(system);
   const originalStop = system.stop.bind(system);
   const empty = () => ({faceLandmarks: [], faceBlendshapes: []});
   const fail = (error, token) => { if (token === generation) onFailure(error); };
+  system._resize = function () {
+   originalResize();
+   const scene = this.el.sceneEl;
+   const cameraEl = this.container.querySelector('a-camera');
+   const {fov, aspect, near, far} = this.controller.getCameraParams();
+   // Persist MindAR's projection in A-Frame too: activating/updating the camera
+   // otherwise restores its default FOV. Resize the renderer after video cropping.
+   cameraEl.setAttribute('camera', {active:true, fov, near, far});
+   scene.resize();
+   const camera = cameraEl.getObject3D('camera');
+   camera.aspect = aspect;
+   camera.updateProjectionMatrix();
+  };
   system._startVideo = async function () {
    const token = ++generation;
    startingAt = performance.now(); lastFrameAt = 0;
