@@ -7,13 +7,14 @@ const status = document.querySelector('#status');
 let running = false;
 function ready() { start.disabled = false; start.textContent = 'Включить камеру'; }
 mask.addEventListener('model-loaded', ready);
-if (mask.getObject3D('mesh')) ready();
+if (mask.getObject3D?.('mesh')) ready();
 mask.addEventListener('model-error', () => { document.querySelector('#hint').textContent = 'Не удалось загрузить маску. Запустите страницу через локальный сервер и обновите её.'; });
 start.onclick = () => {
  if (!window.isSecureContext || !navigator.mediaDevices) {
   document.querySelector('#hint').textContent = 'Для камеры откройте страницу через HTTPS или localhost.'; return;
  }
  start.disabled = true; start.textContent = 'Запуск камеры…';
+ mask.components['mask-fit'].reset();
  scene.systems['mindar-face-system'].start();
 };
 scene.addEventListener('arReady', () => {
@@ -23,8 +24,8 @@ scene.addEventListener('arError', () => {
  document.querySelector('#hint').textContent = 'Камера недоступна. Проверьте разрешение браузера и закройте другие приложения с камерой.';
  shutdown();
 });
-document.querySelector('#anchor').addEventListener('targetFound', () => {status.textContent = 'Лицо найдено — маска следует за движением';});
-document.querySelector('#anchor').addEventListener('targetLost', () => {status.textContent = 'Лицо потеряно — повернитесь к камере';});
+scene.addEventListener('targetFound', () => {status.textContent = mask.components['mask-fit'].fit ? 'Маска подогнана к лицу' : 'Смотрите прямо — подгоняем маску…';});
+scene.addEventListener('targetLost', () => {status.textContent = 'Лицо потеряно — повернитесь к камере';});
 function shutdown() {
  const system = scene.systems['mindar-face-system'];
  if (system.video?.srcObject) system.stop();
@@ -35,11 +36,16 @@ window.addEventListener('pagehide', () => { if (running) shutdown(); });
 for (const id of ['size', 'height', 'depth']) {
  document.getElementById(id).oninput = (event) => {
   document.getElementById(id + 'Out').value = event.target.value;
-  const scale = Number(document.querySelector('#size').value);
-  mask.setAttribute('scale', {x:scale,y:scale,z:scale});
-  mask.setAttribute('position', {x:0,y:Number(document.querySelector('#height').value),z:Number(document.querySelector('#depth').value)});
+  mask.components['mask-fit'].apply();
  };
 }
 setTimeout(() => {
  if (!window.AFRAME || !scene.systems?.['mindar-face-system']) document.querySelector('#hint').textContent = 'Не удалось загрузить библиотеки. Проверьте подключение к интернету и обновите страницу.';
 }, 15000);
+
+scene.addEventListener('maskFitted', () => { status.textContent = 'Маска подогнана к лицу'; });
+document.querySelector('#refit').onclick = () => {
+ for (const [id,value] of [['size',1],['height',0],['depth',0]]) { document.getElementById(id).value = value; document.getElementById(id+'Out').value = value; }
+ mask.components['mask-fit'].reset();
+ status.textContent = 'Смотрите прямо — подгоняем маску…';
+};

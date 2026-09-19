@@ -5,24 +5,25 @@
 <title>Anonymous — AR-маска</title>
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+<script src="mask-fit.js?v=2"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#101720;color:#f4eee0;font:16px system-ui}#stage{position:fixed;inset:0;overflow:hidden;isolation:isolate}a-scene{position:absolute;inset:0}header{position:fixed;top:24px;left:28px;z-index:3}h1{font-size:24px;margin:0;letter-spacing:.12em}header p{color:#bdc6cb;font-size:13px}#intro{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;background:#101720;z-index:2}#intro img{height:min(57vh,520px);max-width:90vw;object-fit:contain}#intro p{max-width:330px;text-align:center;line-height:1.5;padding:0 18px}button{border:0;border-radius:30px;background:#e9d5a5;color:#171d24;padding:14px 24px;font:600 15px system-ui;cursor:pointer}button:disabled{opacity:.5}#panel{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:4;width:min(440px,92vw);background:#17222deb;border:1px solid #ffffff25;padding:18px;border-radius:20px}#status{font-size:14px;margin:0 0 12px}label{display:grid;grid-template-columns:110px 1fr 45px;gap:10px;align-items:center;font-size:13px;margin:12px 0}input{width:100%;accent-color:#e9d5a5}output{text-align:right}#stop{padding:9px 16px;background:#364651;color:white}details{margin-bottom:14px}summary{cursor:pointer;font-size:14px}#panel[hidden],#intro[hidden]{display:none}
 </style>
 </head>
 <body>
 <div id="stage">
-<a-scene mindar-face="autoStart: false; filterMinCF: 0.001; filterBeta: 1; uiLoading: no; uiScanning: no; uiError: no" embedded renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+<a-scene mindar-face="autoStart: false; faceOccluder: false; filterMinCF: 0.001; filterBeta: 1; uiLoading: no; uiScanning: no; uiError: no" embedded renderer="colorManagement: true; antialias: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 <a-assets timeout="30000"><a-asset-item id="maskAsset" src="assets/anonymous-mask.glb"></a-asset-item></a-assets>
 <a-camera active="false" position="0 0 0"></a-camera>
 <a-entity light="type: ambient; color: #fff5e5; intensity: 1"></a-entity>
 <a-entity light="type: directional; color: #ffffff; intensity: 1.5" position="-1 2 3"></a-entity>
 <a-entity id="anchor" mindar-face-target="anchorIndex: 168">
-<a-gltf-model id="mask" src="#maskAsset" position="0 -0.195 -0.12" scale="0.53 0.53 0.53"></a-gltf-model>
+<a-gltf-model id="mask" mask-fit src="#maskAsset" position="0 -0.22 -0.23" scale="0.47 0.46 0.44"></a-gltf-model>
 </a-entity>
 </a-scene>
 </div>
 <header><h1>ANONYMOUS</h1><p>Маска с отслеживанием лица · MindAR</p></header>
 <div id="intro"><img src="assets/anonymous-preview.png" alt="Трёхмерная маска Anonymous"><p id="hint">Разрешите доступ к камере и смотрите прямо. Лучше всего работает при ровном освещении.</p><button id="start" disabled>Загрузка модели…</button></div>
-<div id="panel" hidden><p id="status" role="status" aria-live="polite">Поиск лица…</p><details><summary>Настроить посадку</summary><label>Масштаб<input id="size" type="range" min="0.40" max="0.65" step="0.01" value="0.53"><output id="sizeOut">0.53</output></label><label>По вертикали<input id="height" type="range" min="-0.35" max="0" step="0.005" value="-0.195"><output id="heightOut">-0.195</output></label><label>Глубина<input id="depth" type="range" min="-0.25" max="0.15" step="0.01" value="-0.12"><output id="depthOut">-0.12</output></label></details><button id="stop">Остановить камеру</button></div>
-<script src="app.js"></script>
+<div id="panel" hidden><p id="status" role="status" aria-live="polite">Поиск лица…</p><details><summary>Настроить посадку</summary><label>Масштаб<input id="size" type="range" min="0.85" max="1.15" step="0.01" value="1"><output id="sizeOut">1</output></label><label>По вертикали<input id="height" type="range" min="-0.1" max="0.1" step="0.005" value="0"><output id="heightOut">0</output></label><label>Глубина<input id="depth" type="range" min="-0.08" max="0.08" step="0.005" value="0"><output id="depthOut">0</output></label><button id="refit">Подогнать заново</button></details><button id="stop">Остановить камеру</button></div>
+<script src="app.js?v=2"></script>
 </body></html>
